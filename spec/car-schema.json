@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AuthorityRail-ai/ares-v1/blob/main/spec/car-schema.json",
+  "title": "Certified Action Record",
+  "description": "The cryptographically signed, tamper-evident proof that an authorization decision was made before an AI agent action executed. Produced by every ARES-v1 evaluation. Immutable after issuance.",
+  "type": "object",
+  "required": [
+    "car_id",
+    "version",
+    "timestamp",
+    "agent_id",
+    "agent_credential",
+    "action",
+    "resource",
+    "payload_hash",
+    "risk_score",
+    "risk_classification",
+    "decision",
+    "enforcement",
+    "evaluation_layers",
+    "car_hash",
+    "signature",
+    "public_key",
+    "immutable",
+    "ledger_position"
+  ],
+  "properties": {
+    "car_id": {
+      "type": "string",
+      "description": "Unique sequential identifier for this record. Never reused.",
+      "example": "CAR-48291"
+    },
+    "version": {
+      "type": "string",
+      "description": "The ARES-v1 version that produced this CAR.",
+      "enum": ["ARES-v1.0"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp at the moment of decision. Not the moment of execution."
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "The credentialed agent identity from the Trust Registry."
+    },
+    "agent_credential": {
+      "type": "string",
+      "description": "The active credential ID verified at evaluation time."
+    },
+    "action": {
+      "type": "string",
+      "description": "The action the agent attempted to execute."
+    },
+    "resource": {
+      "type": "string",
+      "description": "The target resource or system the action was directed at."
+    },
+    "payload_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the action payload. The payload itself is not stored in the CAR."
+    },
+    "risk_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Composite risk score from 0 to 100 across all 14 evaluation layers."
+    },
+    "risk_classification": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL", "EXTREME"],
+      "description": "Risk classification based on composite risk score."
+    },
+    "policy_triggered": {
+      "type": ["string", "null"],
+      "description": "The specific policy rule that determined the decision. Null if no policy was triggered."
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "DENY", "ESCALATE"],
+      "description": "The authorization decision. Always present. Never null."
+    },
+    "enforcement": {
+      "type": "string",
+      "enum": ["ALLOW", "HARD_BLOCK", "SOFT_BLOCK", "ESCALATE_HOLD"],
+      "description": "The enforcement action taken as a result of the decision."
+    },
+    "evaluation_layers": {
+      "type": "array",
+      "description": "The 14 assessment layers evaluated in sequence.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "identity_check",
+          "policy_rules",
+          "context_auth",
+          "limits_check",
+          "risk_engine",
+          "maacs_consensus",
+          "trust_registry",
+          "compliance_mapping",
+          "behavioral_analysis",
+          "scope_verification",
+          "temporal_check",
+          "resource_classification",
+          "action_type_evaluation",
+          "cascade_risk_assessment"
+        ]
+      },
+      "minItems": 14,
+      "maxItems": 14
+    },
+    "compliance_mapping": {
+      "type": "object",
+      "description": "The regulatory framework requirements satisfied by this CAR.",
+      "properties": {
+        "nist_ai_rmf": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "iso_42001": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "eu_ai_act": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "soc2": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "human_escalation": {
+      "type": ["object", "null"],
+      "description": "Null for ALLOW and DENY decisions. Contains escalation record for ESCALATE decisions."
+    },
+    "car_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the full CAR content before signing."
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 cryptographic signature of the car_hash."
+    },
+    "public_key": {
+      "type": "string",
+      "description": "The public key required to verify the signature."
+    },
+    "immutable": {
+      "type": "boolean",
+      "enum": [true],
+      "description": "Always true. CARs cannot be altered after issuance."
+    },
+    "ledger_position": {
+      "type": "integer",
+      "description": "The position of this CAR in the append-only audit ledger."
+    }
+  },
+  "additionalProperties": false
+}
