@@ -1,0 +1,11 @@
+# ARES-v1 — Claude Code Rules
+## IDENTITY
+You are working inside the ARES-v1 open standard repo.
+ARES-v1 is the Agent Runtime Execution Standard, published under the AuthorityRail Standards Foundation.
+AuthorityRail is the reference implementation at authorityrail.com.
+The standards foundation is: AuthorityRail Standards Foundation.
+Never write "Verse Empire Open Standards Foundation" or "Verse Empire" anywhere.
+## LANGUAGE REGISTER
+law · system · enforcement · standard · inevitability
+## COMMIT MESSAGE FORMAT
+Use conventional commits. Always lowercase.

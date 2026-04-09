@@ -1,0 +1,216 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://authorityrail.io/schemas/ares-v1.json",
+    "title": "AuthorityRail Execution Standard (ARES) v1",
+    "description": "Machine-readable JSON Schema for ARES ExecutionRequest and ExecutionAuthorization payloads.",
+    "version": "1.0.0",
+    "definitions": {
+        "ExecutionRequest": {
+            "type": "object",
+            "description": "Payload that every caller must submit to the authority checkpoint before executing an action.",
+            "required": [
+                "agent_id",
+                "model_id",
+                "pattern_hash",
+                "action",
+                "environment"
+            ],
+            "properties": {
+                "agent_id": {
+                    "type": "string",
+                    "description": "Globally unique agent identifier. Must be a valid URN.",
+                    "pattern": "^urn:authorityrail:agent:.+$",
+                    "examples": [
+                        "urn:authorityrail:agent:000001"
+                    ]
+                },
+                "model_id": {
+                    "type": "string",
+                    "description": "Underlying AI model identifier.",
+                    "minLength": 1,
+                    "examples": [
+                        "gpt-4-turbo-2026-02",
+                        "claude-3-opus"
+                    ]
+                },
+                "pattern_hash": {
+                    "type": "string",
+                    "description": "SHA-256 hash of the reasoning pattern that produced the decision.",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "examples": [
+                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    ]
+                },
+                "action": {
+                    "type": "string",
+                    "description": "Dot-delimited action class being requested.",
+                    "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+$",
+                    "examples": [
+                        "data.read",
+                        "data.write",
+                        "transaction.execute",
+                        "system.deploy"
+                    ]
+                },
+                "environment": {
+                    "type": "string",
+                    "description": "Target execution environment.",
+                    "enum": [
+                        "production",
+                        "staging",
+                        "sandbox",
+                        "development"
+                    ]
+                },
+                "risk_context": {
+                    "type": "object",
+                    "description": "Optional additional risk metadata provided by the caller.",
+                    "properties": {
+                        "domain": {
+                            "type": "string",
+                            "description": "Domain of the action (e.g. finance, healthcare, infrastructure)."
+                        },
+                        "sensitivity": {
+                            "type": "string",
+                            "description": "Data sensitivity level.",
+                            "enum": [
+                                "public",
+                                "internal",
+                                "confidential",
+                                "restricted"
+                            ]
+                        },
+                        "reversible": {
+                            "type": "boolean",
+                            "description": "Whether the action can be undone."
+                        },
+                        "estimated_impact": {
+                            "type": "string",
+                            "description": "Human-readable description of potential impact."
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": false
+        },
+        "ExecutionAuthorization": {
+            "type": "object",
+            "description": "Response returned by the authority checkpoint after evaluating an ExecutionRequest.",
+            "required": [
+                "decision",
+                "risk_score",
+                "permission_status",
+                "authority_signature",
+                "car_id",
+                "decision_receipt_url"
+            ],
+            "properties": {
+                "decision": {
+                    "type": "string",
+                    "description": "The authorization decision.",
+                    "enum": [
+                        "ALLOW",
+                        "DENY",
+                        "ESCALATE"
+                    ]
+                },
+                "risk_score": {
+                    "type": "number",
+                    "description": "RAAS risk-adjusted score (0-1000). Higher is safer.",
+                    "minimum": 0,
+                    "maximum": 1000
+                },
+                "permission_status": {
+                    "type": "string",
+                    "description": "Reality Permission Layer decision.",
+                    "enum": [
+                        "ALLOW",
+                        "DENY",
+                        "ESCALATE"
+                    ]
+                },
+                "authority_signature": {
+                    "type": "string",
+                    "description": "Base64-encoded Ed25519 signature over the CAR digest.",
+                    "minLength": 1
+                },
+                "car_id": {
+                    "type": "string",
+                    "description": "Certified Action Record identifier.",
+                    "pattern": "^urn:authorityrail:car:.+$",
+                    "examples": [
+                        "urn:authorityrail:car:a1b2c3d4"
+                    ]
+                },
+                "decision_receipt_url": {
+                    "type": "string",
+                    "description": "Public URL where the decision receipt can be independently verified.",
+                    "format": "uri",
+                    "examples": [
+                        "https://verify.authorityrail.io/verify/urn:authorityrail:car:a1b2c3d4"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "ErrorResponse": {
+            "type": "object",
+            "description": "Error response returned when the authority checkpoint cannot process the request. Always fails closed with decision: DENY.",
+            "required": [
+                "decision",
+                "error"
+            ],
+            "properties": {
+                "decision": {
+                    "type": "string",
+                    "const": "DENY"
+                },
+                "error": {
+                    "type": "object",
+                    "required": [
+                        "code",
+                        "message"
+                    ],
+                    "properties": {
+                        "code": {
+                            "type": "string",
+                            "description": "AuthorityRail error code.",
+                            "pattern": "^AR-[0-9]{3}$",
+                            "examples": [
+                                "AR-001",
+                                "AR-003",
+                                "AR-008",
+                                "AR-015"
+                            ]
+                        },
+                        "message": {
+                            "type": "string",
+                            "description": "Human-readable error description."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "ComplianceTier": {
+            "type": "string",
+            "description": "ARES compliance tier.",
+            "enum": [
+                "ARES-BASIC",
+                "ARES-STANDARD",
+                "ARES-FULL"
+            ]
+        },
+        "CertificationLevel": {
+            "type": "string",
+            "description": "AuthorityRail certification level.",
+            "enum": [
+                "AuthorityRail Certified Agent",
+                "AuthorityRail Certified Platform",
+                "AuthorityRail Certified Enterprise"
+            ]
+        }
+    }
+}
