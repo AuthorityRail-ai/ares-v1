@@ -1,8 +1,6 @@
 # ARES — AuthorityRail Execution Standard v1
 
-> **Version:** 1.0.0 · **Status:** Draft Standard · **License:** MIT
-
-**The open protocol for AI execution governance.**
+**Execution Authority Infrastructure — the cryptographic authorization standard that determines what AI agents are permitted to do before they do it.**
 
 Every time an AI agent makes a decision that touches the real world — a payment, a deployment, a database write, an email — that moment has no standard. No checkpoint. No receipt. ARES defines what that checkpoint looks like, what it must verify, and what evidence it must produce.
 
